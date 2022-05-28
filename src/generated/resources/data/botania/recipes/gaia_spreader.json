@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "botania:spreader",
+  "ingredients": [
+    {
+      "item": "botania:elven_spreader"
+    },
+    {
+      "tag": "forge:gems/dragonstone"
+    },
+    {
+      "item": "botania:life_essence"
+    }
+  ],
+  "result": {
+    "item": "botania:gaia_spreader"
+  }
+}

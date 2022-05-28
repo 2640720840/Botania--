@@ -1,0 +1,59 @@
+{
+  "type": "botania:petal_apothecary",
+  "output": {
+    "nbt": {
+      "SkullOwner": "Vazkii"
+    },
+    "item": "minecraft:player_head"
+  },
+  "ingredients": [
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    },
+    {
+      "tag": "botania:petals/pink"
+    }
+  ]
+}

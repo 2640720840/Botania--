@@ -1,0 +1,10 @@
+{
+  "type": "botania:mana_infusion",
+  "input": {
+    "item": "minecraft:dead_bush"
+  },
+  "output": {
+    "item": "botania:podzol_seeds"
+  },
+  "mana": 2500
+}

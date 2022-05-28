@@ -1,0 +1,10 @@
+{
+  "type": "botania:mana_infusion",
+  "input": {
+    "item": "minecraft:piston"
+  },
+  "output": {
+    "item": "botania:piston_relay"
+  },
+  "mana": 15000
+}

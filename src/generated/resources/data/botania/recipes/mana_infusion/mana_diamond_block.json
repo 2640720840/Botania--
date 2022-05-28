@@ -1,0 +1,10 @@
+{
+  "type": "botania:mana_infusion",
+  "input": {
+    "item": "minecraft:diamond_block"
+  },
+  "output": {
+    "item": "botania:mana_diamond_block"
+  },
+  "mana": 90000
+}

@@ -1,0 +1,10 @@
+{
+  "type": "botania:mana_infusion",
+  "input": {
+    "item": "minecraft:iron_block"
+  },
+  "output": {
+    "item": "botania:manasteel_block"
+  },
+  "mana": 27000
+}

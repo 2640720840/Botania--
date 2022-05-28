@@ -1,0 +1,273 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name "Forge"
+            url "https://maven.minecraftforge.net/"
+        }
+        maven {
+            name "Sponge"
+            url "https://repo.spongepowered.org/repository/maven-public/"
+            content { includeGroup "org.spongepowered" }
+        }
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.0.+'
+        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
+    }
+}
+
+plugins {
+    id "com.diffplug.spotless" version "5.7.0"
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+apply plugin: 'pmd'
+apply plugin: 'org.spongepowered.mixin'
+
+mixin {
+    add sourceSets.main, "botania.refmap.json"
+}
+
+ext.configFile = file('build.properties')
+ext.config = parseConfig(configFile)
+ext.priv = parseConfig(file('private.properties'))
+
+def mc_version = "1.16.5"
+version = "${mc_version}-${config.build_number}"
+if (System.getenv().RELEASE_MODE == null) {
+    version += '-SNAPSHOT'
+}
+
+group = "vazkii.botania" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = config.mod_name
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
+compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
+
+minecraft {
+    mappings channel: 'snapshot', version: "20201028-1.16.3"
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    runs {
+        client {
+            property 'forge.logging.console.level', 'debug'
+            property 'fml.earlyprogresswindow', 'false'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+//            property 'mixin.debug.verbose', 'true'
+//            property 'mixin.debug.export', 'true'
+//            property 'mixin.debug.dumpTargetOnFailure', 'true'
+            workingDirectory project.file('run')
+            mods {
+                botania {
+                    source sourceSets.main
+                }
+            }
+        }
+        server {
+            property 'forge.logging.console.level', 'debug'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            workingDirectory project.file('run')
+            mods {
+                botania {
+                    source sourceSets.main
+                }
+            }
+        }
+        data {
+            property 'fml.earlyprogresswindow', 'false'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            workingDirectory project.file('run')
+            forceExit false
+            mods {
+                botania {
+                    source sourceSets.main
+                }
+            }
+            args '--mod', 'botania', '--all',
+                    '--existing', '"' + file('src/main/resources/') + '"',
+                    '--existing', '"' + file('src/generated/resources/') + '"',
+                    '--output', '"' + file('src/generated/resources/') + '"'
+        }
+    }
+}
+
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://maven.blamejared.com"
+    }
+    maven {
+        url "https://dvs1.progwml6.com/files/maven"
+    }
+    maven {
+        name "curios"
+        url "https://maven.theillusivec4.top/"
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${mc_version}-36.1.58"
+
+    compileOnly fg.deobf("vazkii.autoreglib:AutoRegLib:1.6-46.85")
+    compileOnly fg.deobf("vazkii.quark:Quark:r2.4-276.1408")
+
+    compileOnly fg.deobf("vazkii.patchouli:Patchouli:1.16.4-51:api")
+    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:1.16.4-51")
+
+    compileOnly fg.deobf("mezz.jei:jei-1.16.4:7.6.0.58:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.16.4:7.6.0.58")
+
+    compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.16.4-4.0.3.5:api")
+    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.16.4-4.0.3.5")
+
+    compileOnly fg.deobf("com.blamejared.crafttweaker:CraftTweaker-1.16.5:7.1.2.448")
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.1'
+
+    if (System.getProperty("idea.sync.active") != "true") {
+        annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+
+//  CT docs generation
+//        annotationProcessor "com.blamejared.crafttweaker:CraftTweaker-1.16.5:7.1.2.448"
+//        annotationProcessor "com.blamejared.crafttweaker:Crafttweaker_Annotation_Processors-1.16.5:1.0.0.448"
+//        annotationProcessor "org.reflections:reflections:0.9.10" // CT dep
+    }
+}
+
+spotless {
+    enforceCheck = false // workaround around jenkins having wrong line endings in some files
+                         // we explicitly check in github actions builds
+    java {
+        indentWithTabs()
+        licenseHeaderFile('spotless/license_template.txt')
+        eclipse().configFile 'spotless/eclipseformat.xml'
+        removeUnusedImports()
+        importOrderFile 'spotless/eclipse.importorder'
+    }
+}
+
+pmd {
+    toolVersion '6.22.0'
+    incrementalAnalysis.set(true)
+    ruleSets.clear()
+    ruleSetFiles = files("spotless/pmd-ruleset.xml")
+}
+
+task checkSyntax (group: "verification") {
+    dependsOn spotlessJavaCheck, pmdMain
+}
+
+jar {
+    manifest {
+        attributes(["Specification-Title": "botania",
+                    "Specification-Vendor": "botania",
+                    "Specification-Version": "1",
+                    "Implementation-Title": project.name,
+                    "Implementation-Version": "${version}",
+                    "Implementation-Vendor": "botania",
+                    "MixinConnector": "vazkii.botania.common.MixinConnector"
+        ])
+    }
+    
+    exclude "**/*.bat"
+    exclude "**/*.psd"
+    exclude "**/*.exe"
+}
+
+processResources {
+    // Exclude datagenerator .cache directory
+    exclude '.cache'
+
+    filesMatching('data/botania/patchouli_books/lexicon/book.json') {
+        filter {
+            it.replaceAll("buildNumber", config.build_number)
+        }
+    }
+}
+
+task srcJar(type: Jar) {
+    from(sourceSets.main.java)
+    classifier = 'sources'
+}
+
+task apiJar(type: Jar) {
+    // Remove sources from the api jar when MinecraftForge/ForgeGradle#369 is fixed
+    from(sourceSets.main.allJava)
+    from(sourceSets.main.output)
+    include 'vazkii/botania/api/**'
+
+    classifier = 'api'
+}
+
+artifacts {
+    archives srcJar, apiJar
+}
+
+/**
+ * Increments the buildnumber in your config file, and saves it
+ * Note: The doFirst is important, without it the build number
+ * will be incremented every time tasks are configured, i.e every
+ * time gradle is run on this project. 
+ */
+task incrementBuildNumber {
+    doFirst {
+        config.build_number = (config.build_number.toString().toInteger()) + 1
+        configFile.withWriter {
+            config.toProperties().store(it, "")
+        }
+    }
+}
+
+def parseConfig(File config) {
+	if(config.exists()){
+		config.withReader {
+			def prop = new Properties()
+			prop.load(it)
+			return (new ConfigSlurper().parse(prop))
+		}
+	} else {
+		return null
+	}
+}
+
+publishing {
+    tasks.publish.dependsOn build
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
+            from components.java
+            artifact srcJar
+            artifact apiJar
+            pom.withXml {
+                def node = asNode()
+                if(node.dependencies.size() > 0)
+                    node.remove(node.dependencies) // Remove deps, as they are all mappings-dependent and/or forge
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url "file://" + System.getenv("local_maven")
+        }
+    }
+}
+
+defaultTasks 'clean', 'checkSyntax', 'build'
